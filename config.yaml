@@ -1,6 +1,6 @@
 baseURL: http://example.org/
 languageCode: en-us
-title: Forty
+title: Personal Website
 theme: forty
 googleAnalytics: ''
 disqusShortname: ''
@@ -10,22 +10,22 @@ params:
     subtitle: |-
       A RESPONSIVE SITE TEMPLATE DESIGNED BY HTML5 UP
       AND RELEASED UNDER THE CREATIVE COMMONS.
-    title: Hi, my name is Forty
+    title: Hi, my name is Sandra Matlievska
   blog: {}
   contact:
     address:
-      - city: City, ST 00000
-        country: Country
-        street: Street
-        title: Address
+      - city: London, NW15AH
+        country: United Kingdom
+        street: Gloucester Pl
+        title: Dorset House 
     buttonClear: Clear
     buttonSend: Send message
     email:
-      - email: example@domain.com
+      - email: sandra.matlievska@gmail.com
         title: Email
     enable: yes
     phone:
-      - phone: (000) 000-0000 x1234
+      - phone: +44 7778 185 255
         title: Phone
   custom_css: []
   custom_js: []
@@ -34,7 +34,7 @@ params:
     heading: Page couldn't be found
     text: Please visit [this page](/)
   favicon: favicon.ico
-  footer:
+  footer: 
     copyright: Company Name
     enable: yes
     quicklinks:
@@ -42,23 +42,23 @@ params:
         text: 'Design: '
         url: https://www.html5up.net
     social:
-      - icon: fa-twitter
-        label: Twitter
-        url: https://www.twitter.com
-      - icon: fa-facebook
-        label: Facebook
-        url: https://www.facebook.com
+      - #icon: fa-twitter
+        #label: Twitter
+        #url: https://www.twitter.com
+      - #icon: fa-facebook
+        #label: Facebook
+        #url: https://www.facebook.com
       - icon: fa-instagram
         label: Instagram
-        url: https://www.instagram.com
+        url: https://www.instagram.com/smatlievska
       - icon: fa-github
         label: GitHub
-        url: https://www.github.com
+        url: https://www.github.com/smatlievska
       - icon: fa-linkedin
         label: LinkedIn
-        url: https://www.linkedin.com
+        url: https://www.linkedin.com/in/sandra-matlievska/
   image: ''
-  name: Your name
+  name: Sandra Matlievska
   navigation:
     button1:
       - name: Get Started
