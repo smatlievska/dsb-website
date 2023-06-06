@@ -1,0 +1,258 @@
+---
+categories:
+- ""
+- ""
+date: "2017-10-31T22:42:51-05:00"
+description: Nullam et orci eu lorem consequat tincidunt vivamus et sagittis magna
+  sed nunc rhoncus condimentum sem. In efficitur ligula tate urna. Maecenas massa
+  sed magna lacinia magna pellentesque lorem ipsum dolor. Nullam et orci eu lorem
+  consequat tincidunt. Vivamus et sagittis tempus.
+draft: false
+image: forex_prices.jpg
+keywords: ""
+slug: aliquam
+title: About me, or pre-programme
+---
+
+
+
+
+Hi this is Kostis.
+
+# Task 2: `gapminder` country comparison
+
+You have seen the `gapminder` dataset that has data on life expectancy, population, and GDP per capita for 142 countries from 1952 to 2007. To get a glimpse of the dataframe, namely to see the variable names, variable types, etc., we use the `glimpse` function. We also want to have a look at the first 20 rows of data.
+
+
+```r
+glimpse(gapminder)
+```
+
+```
+## Rows: 1,704
+## Columns: 6
+## $ country   <fct> "Afghanistan", "Afghanistan", "Afghanistan", "Afghanistan", …
+## $ continent <fct> Asia, Asia, Asia, Asia, Asia, Asia, Asia, Asia, Asia, Asia, …
+## $ year      <int> 1952, 1957, 1962, 1967, 1972, 1977, 1982, 1987, 1992, 1997, …
+## $ lifeExp   <dbl> 28.801, 30.332, 31.997, 34.020, 36.088, 38.438, 39.854, 40.8…
+## $ pop       <int> 8425333, 9240934, 10267083, 11537966, 13079460, 14880372, 12…
+## $ gdpPercap <dbl> 779.4453, 820.8530, 853.1007, 836.1971, 739.9811, 786.1134, …
+```
+
+```r
+head(gapminder, 20) # look at the first 20 rows of the dataframe
+```
+
+```
+## # A tibble: 20 × 6
+##    country     continent  year lifeExp      pop gdpPercap
+##    <fct>       <fct>     <int>   <dbl>    <int>     <dbl>
+##  1 Afghanistan Asia       1952    28.8  8425333      779.
+##  2 Afghanistan Asia       1957    30.3  9240934      821.
+##  3 Afghanistan Asia       1962    32.0 10267083      853.
+##  4 Afghanistan Asia       1967    34.0 11537966      836.
+##  5 Afghanistan Asia       1972    36.1 13079460      740.
+##  6 Afghanistan Asia       1977    38.4 14880372      786.
+##  7 Afghanistan Asia       1982    39.9 12881816      978.
+##  8 Afghanistan Asia       1987    40.8 13867957      852.
+##  9 Afghanistan Asia       1992    41.7 16317921      649.
+## 10 Afghanistan Asia       1997    41.8 22227415      635.
+## 11 Afghanistan Asia       2002    42.1 25268405      727.
+## 12 Afghanistan Asia       2007    43.8 31889923      975.
+## 13 Albania     Europe     1952    55.2  1282697     1601.
+## 14 Albania     Europe     1957    59.3  1476505     1942.
+## 15 Albania     Europe     1962    64.8  1728137     2313.
+## 16 Albania     Europe     1967    66.2  1984060     2760.
+## 17 Albania     Europe     1972    67.7  2263554     3313.
+## 18 Albania     Europe     1977    68.9  2509048     3533.
+## 19 Albania     Europe     1982    70.4  2780097     3631.
+## 20 Albania     Europe     1987    72    3075321     3739.
+```
+
+Your task is to produce two graphs of how life expectancy has changed over the years for the `country` and the `continent` you come from.
+
+I have created the `country_data` and `continent_data` with the code below.
+
+
+```r
+country_data <- gapminder %>% 
+            filter(country == "Greece") # just choosing Greece, as this is where I come from
+
+continent_data <- gapminder %>% 
+            filter(continent == "Europe")
+```
+
+First, create a plot of life expectancy over time for the single country you chose. Map `year` on the x-axis, and `lifeExp` on the y-axis. You should also use `geom_point()` to see the actual data points and `geom_smooth(se = FALSE)` to plot the underlying trendlines. You need to remove the comments **\#** from the lines below for your code to run.
+
+
+```r
+# plot1 <- ggplot(data = ??, mapping = aes(x = ??, y = ??))+
+#   geom_??() +
+#   geom_smooth(se = FALSE)+
+#   NULL 
+
+# plot1
+```
+
+Next we need to add a title. Create a new plot, or extend plot1, using the `labs()` function to add an informative title to the plot.
+
+
+```r
+# plot1<- plot1 +
+#   labs(title = " ",
+#       x = " ",
+#       y = " ") +
+#   NULL
+
+
+# plot1
+```
+
+Secondly, produce a plot for all countries in the *continent* you come from. (Hint: map the `country` variable to the colour aesthetic. You also want to map `country` to the `group` aesthetic, so all points for each country are grouped together).
+
+
+```r
+# ggplot(gapminder, mapping = aes(x =  , y =  , colour= , group =))+
+#   geom_?? + 
+#   geom_smooth(se = FALSE) +
+#   NULL
+```
+
+Finally, using the original `gapminder` data, produce a life expectancy over time graph, grouped (or faceted) by continent. We will remove all legends, adding the `theme(legend.position="none")` in the end of our ggplot.
+
+
+```r
+# ggplot(data = gapminder , mapping = aes(x =  , y =  , colour= ))+
+#   geom_??? + 
+#   geom_smooth(se = FALSE) +
+#   facet_wrap(~continent) +
+#   theme(legend.position="none") + #remove all legends
+#   NULL
+```
+
+Given these trends, what can you say about life expectancy since 1952? Again, don't just say what's happening in the graph. Tell some sort of story and speculate about the differences in the patterns.
+
+> Type your answer after this blockquote.
+
+# Task 3: Brexit vote analysis
+
+We will have a look at the results of the 2016 Brexit vote in the UK. First we read the data using `read_csv()` and have a quick glimpse at the data
+
+
+```r
+brexit_results <- read_csv(here::here("data","brexit_results.csv"))
+
+
+glimpse(brexit_results)
+```
+
+```
+## Rows: 632
+## Columns: 11
+## $ Seat        <chr> "Aldershot", "Aldridge-Brownhills", "Altrincham and Sale W…
+## $ con_2015    <dbl> 50.592, 52.050, 52.994, 43.979, 60.788, 22.418, 52.454, 22…
+## $ lab_2015    <dbl> 18.333, 22.369, 26.686, 34.781, 11.197, 41.022, 18.441, 49…
+## $ ld_2015     <dbl> 8.824, 3.367, 8.383, 2.975, 7.192, 14.828, 5.984, 2.423, 1…
+## $ ukip_2015   <dbl> 17.867, 19.624, 8.011, 15.887, 14.438, 21.409, 18.821, 21.…
+## $ leave_share <dbl> 57.89777, 67.79635, 38.58780, 65.29912, 49.70111, 70.47289…
+## $ born_in_uk  <dbl> 83.10464, 96.12207, 90.48566, 97.30437, 93.33793, 96.96214…
+## $ male        <dbl> 49.89896, 48.92951, 48.90621, 49.21657, 48.00189, 49.17185…
+## $ unemployed  <dbl> 3.637000, 4.553607, 3.039963, 4.261173, 2.468100, 4.742731…
+## $ degree      <dbl> 13.870661, 9.974114, 28.600135, 9.336294, 18.775591, 6.085…
+## $ age_18to24  <dbl> 9.406093, 7.325850, 6.437453, 7.747801, 5.734730, 8.209863…
+```
+
+The data comes from [Elliott Morris](https://www.thecrosstab.com/), who cleaned it and made it available through his [DataCamp class on analysing election and polling data in R](https://www.datacamp.com/courses/analyzing-election-and-polling-data-in-r).
+
+Our main outcome variable (or y) is `leave_share`, which is the percent of votes cast in favour of Brexit, or leaving the EU. Each row is a UK [parliament constituency](https://en.wikipedia.org/wiki/United_Kingdom_Parliament_constituencies).
+
+To get a sense of the spread, or distribution, of the data, we can plot a histogram, a density plot, and the empirical cumulative distribution function of the leave % in all constituencies.
+
+
+```r
+# histogram
+ggplot(brexit_results, aes(x = leave_share)) +
+  geom_histogram(binwidth = 2.5)
+```
+
+<img src="kostis_pre_programme_files/figure-html/brexit_histogram-1.png" width="672" />
+
+```r
+# density plot-- think smoothed histogram
+ggplot(brexit_results, aes(x = leave_share)) +
+  geom_density()
+```
+
+<img src="kostis_pre_programme_files/figure-html/brexit_histogram-2.png" width="672" />
+
+```r
+# The empirical cumulative distribution function (ECDF) 
+ggplot(brexit_results, aes(x = leave_share)) +
+  stat_ecdf(geom = "step", pad = FALSE) +
+  scale_y_continuous(labels = scales::percent)
+```
+
+<img src="kostis_pre_programme_files/figure-html/brexit_histogram-3.png" width="672" />
+
+One common explanation for the Brexit outcome was fear of immigration and opposition to the EU's more open border policy. We can check the relationship (or correlation) between the proportion of native born residents (`born_in_uk`) in a constituency and its `leave_share`. To do this, let us get the correlation between the two variables
+
+
+```r
+brexit_results %>% 
+  select(leave_share, born_in_uk) %>% 
+  cor()
+```
+
+```
+##             leave_share born_in_uk
+## leave_share   1.0000000  0.4934295
+## born_in_uk    0.4934295  1.0000000
+```
+
+The correlation is almost 0.5, which shows that the two variables are positively correlated.
+
+We can also create a scatterplot between these two variables using `geom_point`. We also add the best fit line, using `geom_smooth(method = "lm")`.
+
+
+```r
+ggplot(brexit_results, aes(x = born_in_uk, y = leave_share)) +
+  geom_point(alpha=0.3) +
+  
+  # add a smoothing line, and use method="lm" to get the best straight-line
+  geom_smooth(method = "lm") + 
+  
+  # use a white background and frame the plot with a black box
+  theme_bw() +
+  NULL
+```
+
+```
+## `geom_smooth()` using formula = 'y ~ x'
+```
+
+<img src="kostis_pre_programme_files/figure-html/brexit_immigration_plot-1.png" width="672" />
+
+You have the code for the plots, I would like you to revisit all of them and use the `labs()` function to add an informative title, subtitle, and axes titles to all plots.
+
+What can you say about the relationship shown above? Again, don't just say what's happening in the graph. Tell some sort of story and speculate about the differences in the patterns.
+
+> Type your answer after, and outside, this blockquote.
+
+# Task 4: Animal rescue incidents attended by the London Fire Brigade
+
+[The London Fire Brigade](https://data.london.gov.uk/dataset/animal-rescue-incidents-attended-by-lfb) attends a range of non-fire incidents (which we call 'special services'). These 'special services' include assistance to animals that may be trapped or in distress. The data is provided from January 2009 and is updated monthly. A range of information is supplied for each incident including some location information (postcode, borough, ward), as well as the data/time of the incidents. We do not routinely record data about animal deaths or injuries.
+
+Please note that any cost included is a notional cost calculated based on the length of time rounded up to the nearest hour spent by Pump, Aerial and FRU appliances at the incident and charged at the current Brigade hourly rate.
+
+
+
+
+
+
+
+
+
+
+
+
+
