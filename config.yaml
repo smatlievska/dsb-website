@@ -84,10 +84,10 @@ params:
         subtitle: I've moved a few times.
         title: Living 
         url: blogs/living
-      - image: picture3.jpg
-        subtitle: I've studied a bit. 
-        title: Learning
-        url: blogs/learning
+      - image: picture6.jpg
+        subtitle: of DJIA stocks 
+        title: Risk-Return
+        url: blogs/risk_return
       - image: picture5.jpg
         subtitle: I've done a few things.
         title: Working
