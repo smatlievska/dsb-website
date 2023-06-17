@@ -6,7 +6,8 @@ googleAnalytics: ''
 disqusShortname: ''
 params:
   banner:
-v    buttonText: Get Started
+    image: picture13.jpg
+    buttonText: Get Started
     subtitle: |-
       HOPE THIS WORKS.
     title: Hi, my name is Sandra
@@ -84,7 +85,7 @@ v    buttonText: Get Started
         title: Living 
         url: blogs/living
       - image: picture3.jpg
-        subtitle: Risk. 
+        subtitle: I've studied a bit. 
         title: Learning
         url: blogs/learning
       - image: picture5.jpg
@@ -95,14 +96,14 @@ v    buttonText: Get Started
         subtitle: I've seen som cool places. 
         title: Traveling
         url: blogs/traveling
- #    - image: picture9.jpg
- #       subtitle: I've binge-watched a lot. 
- #       title: Watching
- #       url: blogs/watching
- #     - image: picture11.jpg
- #       subtitle: I've read some books. 
- #       title: Reading
- #       url: blogs/reading
+      - image: picture9.jpg
+        subtitle: I've binge-watched a lot. 
+        title: Watching
+        url: blogs/watching
+      - image: picture11.jpg
+        subtitle: I've read some books. 
+        title: Reading
+        url: blogs/reading
  # two:
  #   buttonText: Get Started
  #   enable: yes
