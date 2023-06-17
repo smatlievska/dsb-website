@@ -96,14 +96,14 @@ params:
         subtitle: I've seen som cool places. 
         title: Traveling
         url: blogs/traveling
-      - image: picture9.jpg
-        subtitle: I've binge-watched a lot. 
-        title: Watching
-        url: blogs/watching
-      - image: picture11.jpg
-        subtitle: I've read some books. 
-        title: Reading
-        url: blogs/reading
+ #     - image: picture9.jpg
+ #       subtitle: I've binge-watched a lot. 
+ #       title: Watching
+ #       url: blogs/watching
+ #     - image: picture11.jpg
+ #       subtitle: I've read some books. 
+ #       title: Reading
+ #       url: blogs/reading
  # two:
  #   buttonText: Get Started
  #   enable: yes
