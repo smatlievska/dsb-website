@@ -1,15 +1,15 @@
 
 ---
-categories:
-- ""
-- ""
+title: "Final Group Project"
 date: "2021-09-30T22:26:09-05:00"
 description: Our finalized group project that predicts credit card fraud.
-draft: false
+draft: no
 image: picture17.jpg
-keywords: ""
+keywords: ''
 slug: groupproject
-title: Final Group Project
+categories:
+- ''
+- ''
 ---
 
 ```{r load-libraries, echo=FALSE, message=FALSE, warning=FALSE}
