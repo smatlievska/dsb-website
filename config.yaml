@@ -79,30 +79,30 @@ v    buttonText: Get Started
   tiles:
     enable: yes
     showcase:
-      - image: pic01.jpg
-        subtitle: Ipsum Dolor Sit Amet
-        title: Aliquam
-        url: blogs/aliquam
-      - image: pic02.jpg
-        subtitle: Feugiat Amet Tempus
-        title: Tempus
-        url: blogs/risk_return.rmd
-      - image: pic03.jpg
-        subtitle: Lorem Etiam Nullam
-        title: Magna
-        url: blogs/magna
-      - image: pic04.jpg
-        subtitle: Nisl Sed Aliquam
-        title: Ipsum
-        url: blogs/ipsum
- #     - image: pic05.jpg
- #       subtitle: Ipsum Dolor Sit Amet
- #       title: Consequat
- #       url: blogs/ipsum
- #     - image: pic06.jpg
- #       subtitle: Feugiat Amet Tempus
- #       title: Etiam
- #       url: blogs/ipsum
+      - image: picture1.jpg
+        subtitle: I've moved a few times.
+        title: Living 
+        url: blogs/living
+      - image: picture3.jpg
+        subtitle: Risk. 
+        title: Learning
+        url: blogs/learning
+      - image: picture5.jpg
+        subtitle: I've done a few things.
+        title: Working
+        url: blogs/working
+      - image: picture7.jpg
+        subtitle: I've seen som cool places. 
+        title: Traveling
+        url: blogs/traveling
+ #    - image: picture9.jpg
+ #       subtitle: I've binge-watched a lot. 
+ #       title: Watching
+ #       url: blogs/watching
+ #     - image: picture11.jpg
+ #       subtitle: I've read some books. 
+ #       title: Reading
+ #       url: blogs/reading
  # two:
  #   buttonText: Get Started
  #   enable: yes
