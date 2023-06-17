@@ -15,5 +15,7 @@ draft: false
 Beyond all I've learned through my BSc in International Business in University of Ljubljana, School of Economics and Business (SEB LU), and my MSc in Management in London Business School, here is a list of the skills that have had the biggest impact on my life:
 
 • Learning English, and Slovenian. Helps to speak the language of where you live.
+
 • Learning to make banana bread. Honestly, the best sweet snack and comfort food.
+
 • Learning R. Has already come in handy beyond just for the course.   
