@@ -1,17 +1,15 @@
 ---
-categories:  
+categories:
 - ""
 - ""
-date: "2021-09-30"
-description: Risk-Return of DJIA stocks 
+date: "2021-09-30T22:26:09-05:00"
+description: Risk-Return of DJIA stocks
 draft: false
 image: spices.jpg
 keywords: ""
 slug: riskreturn
 title: Risk-Return of DJIA stocks
 ---
-  
-
 
 
 ```{r, setup, echo=FALSE}

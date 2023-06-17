@@ -81,29 +81,29 @@ params:
     enable: yes
     showcase:
       - image: picture1.jpg
-        subtitle: I've moved a few times.
-        title: Living 
+        subtitle: Final Submission
+        title: Group Project 
         url: blogs/living
       - image: picture6.jpg
-        subtitle: of DJIA stocks 
+        subtitle: of DJIA Stocks 
         title: Risk-Return
         url: blogs/riskreturn
       - image: picture5.jpg
         subtitle: I've done a few things.
         title: Working
         url: blogs/working
-      - image: picture7.jpg
-        subtitle: I've seen som cool places. 
-        title: Traveling
-        url: blogs/traveling
+      - image: picture1.jpg
+        subtitle: I've studied a bit. 
+        title: Learning
+        url: blogs/learning
+ #     - image: picture1.jpg
+ #       subtitle: I've moved a few times. 
+ #       title: Living
+ #       url: blogs/living
  #     - image: picture9.jpg
- #       subtitle: I've binge-watched a lot. 
+ #       subtitle: I've watched some movies. 
  #       title: Watching
  #       url: blogs/watching
- #     - image: picture11.jpg
- #       subtitle: I've read some books. 
- #       title: Reading
- #       url: blogs/reading
  # two:
  #   buttonText: Get Started
  #   enable: yes
