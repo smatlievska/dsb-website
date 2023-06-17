@@ -90,10 +90,10 @@ params:
         url: blogs/riskreturn
       - image: picture5.jpg
         subtitle: I've done a few things.
-        title: Working
-        url: blogs/working
+        title: Accomplishments
+        url: blogs/accomplishments
       - image: picture3.jpg
-        subtitle: I've studied a bit. 
+        subtitle: I've learned some cool things. 
         title: Learning
         url: blogs/learning
  #     - image: picture1.jpg
