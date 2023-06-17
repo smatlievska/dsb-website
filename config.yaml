@@ -6,10 +6,10 @@ googleAnalytics: ''
 disqusShortname: ''
 params:
   banner:
+    image: picture13.jpg
     buttonText: Get Started
     subtitle: |-
-      A RESPONSIVE SITE TEMPLATE DESIGNED BY HTML5 UP
-      AND RELEASED UNDER THE CREATIVE COMMONS.
+      HOPE THIS WORKS.
     title: Hi, my name is Sandra
   blog: {}
   contact:
@@ -93,7 +93,7 @@ params:
         title: Working
         url: blogs/working
       - image: picture7.jpg
-        subtitle: I've seen some cool places. 
+        subtitle: I've seen som cool places. 
         title: Traveling
         url: blogs/traveling
       - image: picture9.jpg
