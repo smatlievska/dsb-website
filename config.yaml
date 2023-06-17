@@ -87,7 +87,7 @@ params:
       - image: picture6.jpg
         subtitle: of DJIA stocks 
         title: Risk-Return
-        url: blogs/risk_return
+        url: blogs/riskreturn
       - image: picture5.jpg
         subtitle: I've done a few things.
         title: Working
