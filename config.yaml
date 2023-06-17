@@ -80,7 +80,7 @@ params:
   tiles:
     enable: yes
     showcase:
-      - image: picture14.jpg
+      - image: picture15.jpg
         subtitle: Final Submission
         title: Group Project 
         url: blogs/groupproject
