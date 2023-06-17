@@ -1,0 +1,838 @@
+---
+categories:
+- ""
+- ""
+date: "2021-09-30T22:26:09-05:00"
+description: Final Group Project
+draft: false
+image: lbs.jpg
+keywords: ""
+slug: "groupproject"
+title: Final Group Project
+---
+
+```{r load-libraries, echo=FALSE, message=FALSE, warning=FALSE}
+
+# load required libraries 
+library(tidyverse)
+library(tidymodels)
+library(skimr)
+library(kknn)
+library(here)
+library(tictoc)
+library(vip)
+library(ranger)
+library(leaflet)
+
+```
+
+# The problem: predicting credit card fraud
+
+The goal of this project is to predict fraudulent credit card transactions.
+
+The data set we will use consists of credit card transactions and it includes information about each transaction including customer details, the merchant and category of purchase, and whether or not the transaction was a fraud.
+
+## Obtain the data
+
+```{r load-data, echo=FALSE, message=FALSE, warning=FALSE}
+
+# load in card fraud data from data folder
+card_fraud <- read_csv(here::here("data", "card_fraud.csv")) %>% 
+
+  mutate(
+# in tidymodels, outcome should be a factor so we convert is_fraud to factor 
+    is_fraud = factor(is_fraud),
+    
+# first level is the event of interest in tidymodels, so we need to reorder
+# to make sure first level corresponds to when we HAD FRAUD 
+    is_fraud = relevel(is_fraud, ref = "1")
+         )
+
+# check out the data set 
+glimpse(card_fraud)
+```
+
+We also add some variables to isolate the hour of the day, day of the week, month etc. corresponding to the transactions as well as the age of the customers to assist in exploratory data analysis:
+
+```{r add-some-variables}
+
+# use lubridate to isolate day of week, month, hour of day, age etc. 
+card_fraud <- card_fraud %>% 
+  mutate( hour = hour(trans_date_trans_time),
+          wday = wday(trans_date_trans_time, label = TRUE),
+          month_name = month(trans_date_trans_time, label = TRUE),
+          age = interval(dob, trans_date_trans_time) / years(1)
+) %>% 
+  rename(year = trans_year) %>% 
+
+# use lat, long to calculate distance between transaction and cardholder's home   
+  mutate(
+    
+# convert latitude/longitude to radians
+    lat1_radians = lat / 57.29577951,
+    lat2_radians = merch_lat / 57.29577951,
+    long1_radians = long / 57.29577951,
+    long2_radians = merch_long / 57.29577951,
+    
+# calculate distance in miles
+    distance_miles = 3963.0 * acos((sin(lat1_radians) * sin(lat2_radians)) + cos(lat1_radians) * cos(lat2_radians) * cos(long2_radians - long1_radians)),
+
+# calculate distance in km
+    distance_km = 6377.830272 * acos((sin(lat1_radians) * sin(lat2_radians)) + cos(lat1_radians) * cos(lat2_radians) * cos(long2_radians - long1_radians))
+
+  )
+
+```
+
+## Exploratory Data Analysis (EDA)
+
+Let's explore the data set and understand some useful features of it.
+
+-   First, let's understand how many transactions were actually fraud in this data set:
+
+```{r how-much-fraud}
+
+# group transactions by year 
+card_fraud %>% 
+  group_by(year) %>% 
+# count number of fraudulent and non- fraudulent transactions 
+  count(is_fraud) %>% 
+# calculate variable for frequency of fraud 
+  mutate(percentage = n/sum(n) *100) 
+
+```
+
+-   Approximately 0.6% of transactions were fraudulent in both 2019 and 2020.
+
+-   Next, examine date/time variables: when does fraud occur? Are there some weekdays, months or hours of the day when fraud occurs more frequently? :
+
+```{r fraud-happens-when}
+
+# plot bar graph to investigate fraud by day of the week 
+card_fraud %>% 
+  
+# filter only for fraudulent transactions
+  filter(is_fraud==1) %>% 
+  
+# count number of transactions of fraud by weekday 
+  group_by(wday) %>% 
+  count() %>% 
+  
+# plot bars for weekdays 
+  ggplot(aes(x = wday, y = n)) + 
+  geom_bar(stat="identity") +
+  
+# add some text to show count of transactions for each day 
+  geom_text(aes(label = n, y= n - 10), 
+            colour = "white", size = 4 , vjust = 2) +
+  labs(x='', y='', 
+       title = "Number of occurences of fraud by weekday")
+  
+
+# plot bar graph to investigate fraud by month of the year 
+card_fraud %>% 
+  
+# filter only for fraudulent transactions
+  filter(is_fraud==1) %>% 
+  
+# count number of transactions of fraud by month 
+  group_by(month_name) %>% 
+  count() %>% 
+  
+# plot bars for months 
+  ggplot(aes(x = month_name, y = n)) + 
+  geom_bar(stat="identity") +
+  
+# add some text to show count of transactions for each month 
+  geom_text(aes(label = n, y= n - 10), 
+            colour = "white", size = 4 , vjust = 2) +
+  labs(x='', y='', 
+       title = "Number of occurences of fraud by month")
+
+
+# make a table to investigate which hours of the day are most affected 
+card_fraud %>% 
+  
+# filter only for fraudulent transactions
+  filter(is_fraud==1) %>% 
+  
+# count number of transactions of fraud by hour of the day 
+  group_by(hour) %>% 
+  count() %>%
+# arrange from most fraud occurences to least 
+  arrange(desc(n))
+
+```
+
+-   Fraud seems to occur far more frequently during night time hours when people are asleep and more frequently on weekend days as these are generally the times during which people are paying less attention to their bank accounts. Furthermore, fraud is far more common in the first six months of the year than the last. It is unclear why.
+
+-   Next, we turn our attention to the numerical variables: what is the distribution of amounts of fraudulent and legitimate transactions? :
+
+```{r transaction-amounts}
+
+# some quick summary stats using summarize 
+# group by fraud versus legitimate 
+card_fraud %>% 
+  group_by(is_fraud) %>% 
+# calculate summary stats of amounts for each
+  summarize(mean_amount= mean(amt), 
+            median_amount = median(amt), 
+            minimum_amount = min(amt), 
+            maximum_amount = max(amt))
+
+
+# now plot histogram of fraudulent transaction amounts  
+card_fraud %>%
+# only fraudulent transactions
+  filter(is_fraud==1) %>% 
+# plot distribution - make bins look as good as possible 
+  ggplot(aes(x = amt)) +
+  geom_histogram(bins=50) +
+
+  labs(title = "Distribution of transactions amounts
+       \nof fraudulent transactions", 
+       x = "Transaction amount / $", y="")
+
+```
+
+-   We see that the distribution of fraudulent transactions has a mean of about \$500 and barely any amounts go above \$1000. This makes sense as fraudsters would want transactions to be worth it, but without attracting too much attention. Many tiny transactions or one very large transaction would get the attention of the victim more quickly. Contrarily, legitimate transactions obviously have a much wider range and lower mean/median value.
+
+-   Now let's consider geospatial variables: select the 400 cities (roughly half of the number of cities represented) with the most legitimate/fraud transactions and then use leaflet library to help us plot an interactive map of the lat and long locations of where legitimate/fraud transactions took place:
+
+```{r location-fraud}
+
+# arrange cities in order of number of transactions
+top_fraud_cities <- card_fraud %>%
+  count(city) %>% 
+  arrange(desc(n)) %>% 
+  
+# slice 400 most represented cities 
+  slice(1:400) %>%
+  select(city) %>%
+  pull()
+  
+# create colour vector 
+colours <- c('#e41a1c','#377eb8')
+
+# create function that assigns colours to fraud/legit transactions 
+point_colour <- colorFactor(palette = colours,  
+                          card_fraud$is_fraud)
+
+
+# filter only for top fraud cities 
+card_fraud %>%
+  filter(city %in% top_fraud_cities) %>% 
+# use leaflet and openstreetmaps for interactive map 
+  leaflet() %>% 
+  addProviderTiles("OpenStreetMap.Mapnik") %>% 
+
+# create circles at lat and long locations 
+  addCircleMarkers(lng = ~long, 
+                   lat = ~lat, 
+                   radius = 1, 
+                   
+# colour fraud/legit transaction points 
+                   color = ~point_colour(is_fraud), 
+                   fillOpacity = 0.6, 
+                   label = ~is_fraud) %>%
+# map legend  
+  addLegend("bottomright", pal = point_colour, 
+            values = ~is_fraud,
+            title = "Fraud")
+
+```
+
+-   Furthermore, we have calculated the distances between transaction locations and the home location of customers. Do these distances affect the likelihood of fraud occurring? :
+
+```{r distance-effects}
+
+# create new column to turn is_fraud into characters 
+card_fraud %>% 
+  mutate(is_fraud_new= as.character(is_fraud)) %>% 
+  
+# violin plot of distances 
+  ggplot(aes(x = is_fraud_new, y=distance_km)) +
+         geom_violin() + 
+# label fraud categories correctly 
+  scale_x_discrete(labels= c("Fraudulent","Legitimate")) +
+  
+  labs(x='', y = "Distance / km" , 
+       title = "Is fraudulent activity affected by distance between \ncardholder's home and transaction location")
+```
+
+-   There seems to be absolutely no relationship between the distance between the cardholders' home and the transaction location and whether fraudulent activity occurs. This is not a useful data factor to explain fraud.
+
+-   Lastly we examine our categorical variables: category of merchant and job of victim:
+
+-   Which category of merchant is most likely to experience fraudulent transactions? :
+
+```{r merchants-fraud, fig.width=10, fig.height=8}
+
+card_fraud %>% 
+# filter for only fraud transactions
+  filter(is_fraud==1) %>% 
+  
+# count them by category and rearrange bars based on count
+  count(category) %>% 
+  mutate(category = fct_reorder(category,n)) %>%
+  
+# calculate percentage of fraud by catgeory of merchant 
+  mutate(percentage = n/sum(n)*100) %>% 
+  
+# plot categories of fraud percentage frequency
+  ggplot(aes(y=category, x=percentage)) + 
+  geom_bar(stat = "identity") +
+  labs(title="Percentage of fraudulent transactions 
+       \nby type of merchant", 
+       x = "Percentage of transactions",
+       y = "Type of merchant")
+  
+```
+
+-   Are customers with certain jobs more likely to experience fraud? :
+
+```{r jobs-fraud}
+
+card_fraud %>% 
+  
+# filter for only fraud transactions
+  filter(is_fraud==1) %>% 
+# group by job 
+  group_by(job) %>% 
+  
+# count fraud transactions by customer job 
+  count() %>% 
+  arrange(desc(n))
+
+```
+
+There is clearly a large discrepancy between certain types of merchant category and customer job in this data set. Let us combine the smallest represented categories of these into "Other" and convert the string variables to factors. This is much more useful for machine learning purposes and will enhance the predictive performance of our model: we will do the category combining in our recipe to follow later:
+
+```{r convert-strings-to-factors}
+
+# convert the two string variables to factors 
+card_fraud <- card_fraud %>% 
+  mutate(category = factor(category),
+         job = factor(job))
+
+```
+
+## Fit workflows on smaller data sample
+
+This data set has 670K rows and trying various models may break things...
+
+Thus, we will work with a smaller sample of 10% of the values the original data set to identify the best model, and once we have the best model we can use the full data set to train and test our best model.
+
+```{r smaller-subset}
+
+# select a smaller subset
+my_card_fraud <- card_fraud %>% 
+  
+# select a smaller subset, 10% of the entire dataframe 
+  slice_sample(prop = 0.10) %>% 
+  
+# pick our variables of interest 
+  select(category, amt, distance_miles, city_pop, hour, wday, month_name, age, is_fraud)
+
+```
+
+## Split the data in training - testing
+
+```{r split-data}
+
+set.seed(123)
+
+# split our smaller data set 80% training, 20% testing
+# with equal proportions of fraud transactions in each set 
+data_split <- initial_split(my_card_fraud, 
+                           prop = 0.8, 
+                           strata = is_fraud)
+
+# split the data 
+card_fraud_train <- training(data_split) 
+card_fraud_test <- testing(data_split)
+
+```
+
+## Cross Validation
+
+We will use 3 folds for cross validation:
+
+```{r cross-validation, message=FALSE}
+
+set.seed(123)
+
+# 3-fold validation for training data 
+# equal proportion of fraud transactions in each fold 
+cv_folds <- vfold_cv(data = card_fraud_train, 
+                          v = 3, 
+                          strata = is_fraud)
+cv_folds 
+
+```
+
+## Define a recipe
+
+We define our pre-processor recipes steps below:
+
+```{r, define_recipe}
+
+# predict fraud transaction for training data with following recipe 
+fraud_rec <- recipe(is_fraud ~ ., data = card_fraud_train) %>%
+  
+# Categories with less than 5% will be in a category 'Other'
+    
+  step_other(category, threshold = .05) %>% 
+
+# log amounts data becuase this is very disperse 
+  step_log(amt) %>% 
+
+# skip all NA's 
+  step_naomit(everything(), skip = TRUE) %>% 
+    
+# deal with variables not encountered in training data 
+  step_novel(all_nominal(), -all_outcomes()) %>%
+    
+# Convert nominal data into numeric dummy variables
+  step_dummy(all_nominal(), -all_outcomes()) %>%
+    
+# deal with numeric variables that contain only a single value
+  step_zv(all_numeric(), -all_outcomes()) %>% 
+  
+# center and scale all numeric variables 
+  step_normalize(all_numeric(), -all_outcomes())
+
+```
+
+Check the pre-processed data frame :
+
+```{r check-data-frame}
+
+prepped_data <- 
+  fraud_rec %>% # use the recipe object
+  prep() %>% # perform the recipe on training data
+  juice() # extract only the preprocessed dataframe 
+
+glimpse(prepped_data)
+
+```
+
+## Define various models
+
+We define the following classification models:
+
+1.  Logistic regression, using the `glm` engine
+2.  Decision tree, using the `C5.0` engine
+3.  Random Forest, using the `ranger` engine and setting `importance = "impurity"`)
+4.  A boosted tree using Extreme Gradient Boosting, and the `xgboost` engine
+5.  A k-nearest neighbours, using 4 nearest_neighbors and the `kknn` engine
+
+```{r, define_models, message=FALSE}
+
+# 1. Pick a `model type`
+# 2. set the `engine`
+# 3. Set the `mode`: classification
+
+# Logistic regression
+log_spec <-  logistic_reg() %>%  # model type
+  set_engine(engine = "glm") %>%  # model engine
+  set_mode("classification") # model mode
+
+# Show  model specification
+log_spec
+
+# Decision Tree
+tree_spec <- decision_tree() %>%
+  set_engine(engine = "C5.0") %>%
+  set_mode("classification")
+
+tree_spec
+
+# Random Forest
+library(ranger)
+
+rf_spec <- 
+  rand_forest() %>% 
+  set_engine("ranger", importance = "impurity") %>% 
+  set_mode("classification")
+
+
+# Boosted tree (XGBoost)
+library(xgboost)
+
+xgb_spec <- 
+  boost_tree() %>% 
+  set_engine("xgboost") %>% 
+  set_mode("classification") 
+
+# K-nearest neighbour (k-NN)
+knn_spec <- 
+  nearest_neighbor(neighbors = 4) %>% 
+  set_engine("kknn") %>% 
+  set_mode("classification") 
+
+```
+
+## Bundle recipe and model with `workflows`
+
+```{r, define_workflows}
+
+# Bundle recipe and model into workflows 
+
+# Logistic regression
+log_wflow <- # new workflow object
+ workflow() %>% # use workflow function
+ add_recipe(fraud_rec) %>%   # add recipe
+ add_model(log_spec)   # add model spec
+
+# show object
+log_wflow
+
+
+# Decision Tree
+tree_wflow <-
+ workflow() %>%
+ add_recipe(fraud_rec) %>% 
+ add_model(tree_spec) 
+
+
+# Random Forest
+rf_wflow <-
+ workflow() %>%
+ add_recipe(fraud_rec) %>% 
+ add_model(rf_spec) 
+
+
+# Boosted tree (XGBoost)
+xgb_wflow <-
+ workflow() %>%
+ add_recipe(fraud_rec) %>% 
+ add_model(xgb_spec)
+
+
+# K-nearest neighbour (k-NN)
+knn_wflow <-
+ workflow() %>%
+ add_recipe(fraud_rec) %>% 
+ add_model(knn_spec)
+
+```
+
+## Fit models
+
+```{r, fit_models}
+
+# fit all 5 models and use tic to compare the times they take to run 
+# resample using our 3 folds 
+# collect model performance metrics 
+
+# Logistic regression
+tic()
+log_res <- log_wflow %>% 
+  fit_resamples(
+    resamples = cv_folds, 
+    metrics = metric_set(
+      recall, precision, f_meas, accuracy,
+      kap, roc_auc, sens, spec),
+    control = control_resamples(save_pred = TRUE)) 
+time_log <- toc()
+log_time <- time_log[[4]]
+
+
+# Decision Tree
+tic()
+tree_res <- tree_wflow %>% 
+  fit_resamples(
+    resamples = cv_folds, 
+    metrics = metric_set(
+      recall, precision, f_meas, accuracy,
+      kap, roc_auc, sens, spec),
+    control = control_resamples(save_pred = TRUE)) 
+time_tree <- toc()
+tree_time <- time_tree[[4]]
+
+
+# Random Forest
+tic()
+rf_res <- rf_wflow %>% 
+  fit_resamples(
+    resamples = cv_folds, 
+    metrics = metric_set(
+      recall, precision, f_meas, accuracy,
+      kap, roc_auc, sens, spec),
+    control = control_resamples(save_pred = TRUE)) 
+time_rf <- toc()
+rf_time <- time_rf[[4]]
+
+
+# Boosted tree (XGBoost)
+tic()
+xgb_res <- xgb_wflow %>% 
+  fit_resamples(
+    resamples = cv_folds, 
+    metrics = metric_set(
+      recall, precision, f_meas, accuracy,
+      kap, roc_auc, sens, spec),
+    control = control_resamples(save_pred = TRUE)) 
+time_xgb <- toc()
+xgb_time <- time_xgb[[4]]
+
+
+# K-nearest neighbour (k-NN)
+tic()
+knn_res <- knn_wflow %>% 
+  fit_resamples(
+    resamples = cv_folds, 
+    metrics = metric_set(
+      recall, precision, f_meas, accuracy,
+      kap, roc_auc, sens, spec),
+    control = control_resamples(save_pred = TRUE)) 
+time_knn <- toc()
+knn_time <- time_knn[[4]]
+
+```
+
+## Compare models
+
+```{r, compare_models, fig.width=8, fig.height=6}
+
+# Model Comparison
+
+log_metrics <- 
+  log_res %>% 
+  collect_metrics(summarise = TRUE) %>%
+  # add the name of the model to every row
+  mutate(model = "Logistic Regression",
+         time = log_time)
+
+tree_metrics <- 
+  tree_res %>% 
+  collect_metrics(summarise = TRUE) %>%
+  mutate(model = "Decision Tree",
+         time = tree_time)
+
+rf_metrics <- 
+  rf_res %>% 
+  collect_metrics(summarise = TRUE) %>%
+  mutate(model = "Random Forest",
+         time = rf_time)
+
+xgb_metrics <- 
+  xgb_res %>% 
+  collect_metrics(summarise = TRUE) %>%
+  mutate(model = "XGBoost",
+         time = xgb_time)
+
+knn_metrics <- 
+  knn_res %>% 
+  collect_metrics(summarise = TRUE) %>%
+  mutate(model = "Knn",
+         time = knn_time)
+
+
+# create dataframe with all models
+model_compare <- bind_rows(log_metrics,
+                            tree_metrics,
+                            rf_metrics,
+                           xgb_metrics,
+                           knn_metrics
+                      ) %>% 
+# get rid of 'sec elapsed' and turn it into a number
+  mutate(time = str_sub(time, end = -13) %>% 
+           as.double()
+         )
+
+# pivot wider to create barplot
+  model_comp <- model_compare %>% 
+  select(model, .metric, mean, std_err) %>% 
+  pivot_wider(names_from = .metric, values_from = c(mean, std_err)) 
+
+# show mean area under the curve (ROC-AUC) for every model
+model_comp %>% 
+  arrange(mean_roc_auc) %>% 
+  
+# order results with highest area bar on top 
+  mutate(model = fct_reorder(model, mean_roc_auc)) %>% 
+  
+# column chart with model name on y-axis, mean are under ROC curve on x-axis
+  ggplot(aes(model, mean_roc_auc, fill=model)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_brewer(palette = "Blues") +
+   geom_text(
+     size = 3,
+     aes(label = round(mean_roc_auc, 2), 
+         y = mean_roc_auc + 0.08),
+     vjust = 1
+  )+
+  theme_light()+
+  theme(legend.position = "none")+
+  labs(y = "Mean area under ROC curve", 
+       title ="Which model performs best?")
+
+```
+
+From the graph above, the Random Forest and XGBoost models seem to be far superior to the others in terms of sensitivity and specificity i.e. they predict far fewer false positive/negatives.
+
+## Last_fit metrics 
+
+Since the Random Forest and XGBoost models seem to have outperformed the others, we will use these workflows to do a last_fit test:
+
+```{r last-fit}
+
+# last fit on rf workflow using data_split 
+last_fit_rf <- last_fit(rf_wflow, 
+                        split = data_split,
+                        
+# summarize important metrics 
+                        metrics = metric_set(
+                          accuracy, f_meas, kap, precision,
+                          recall, roc_auc, sens, spec))
+
+last_fit_rf %>% collect_metrics(summarize = TRUE)
+
+# Compare to training model
+rf_res %>% collect_metrics(summarize = TRUE)
+
+
+
+# last fit on xgb workflow using data_split 
+last_fit_xgb <- last_fit(xgb_wflow, 
+                        split = data_split,
+                        
+# summarize important metrics 
+                        metrics = metric_set(
+                          accuracy, f_meas, kap, precision,
+                          recall, roc_auc, sens, spec))
+
+last_fit_xgb %>% collect_metrics(summarize = TRUE)
+
+# Compare to training model
+xgb_res %>% collect_metrics(summarize = TRUE)
+
+```
+
+From the tables, over fitting has clearly not taken place as the model fits the training and testing data equally well. This is excellent and also more true for the XGBoost model. We will choose this as the "best" model and move forward in analysis with only XGBoost.
+
+## Get variable importance using `vip` package
+
+```{r variable-importance}
+
+# use vip package 
+# extract the fit from the xgb workflow 
+last_fit_xgb %>% 
+  pluck(".workflow", 1) %>%   
+  extract_fit_parsnip() %>% 
+  
+# top 10 most important variables 
+  vip(num_features = 10) +
+  theme_light() + 
+  labs(title = "Variable importance for XGBoost model fit")
+
+```
+
+It would appear that transaction amount was by far the most important variable in predicting whether a transaction was fraudulent. We discovered this might be the case in our earlier EDA as legitimate transactions had a far greater spread and lower mean than fraudulent transactions.
+
+## Plot Final Confusion matrix and ROC curve
+
+```{r confusion-matrix}
+
+# Final Confusion Matrix for XGBoost model 
+
+last_fit_xgb %>%
+# collect preditions and plot confusion matrix 
+  collect_predictions() %>% 
+  conf_mat(is_fraud, .pred_class) %>% 
+  autoplot(type = "heatmap") +
+  
+# fix axis labels and title 
+  scale_x_discrete(labels= c("Fraudulent","Legitimate")) +
+  scale_y_discrete(labels= c("Legitimate","Fraudulent")) +
+  labs(title="Confusion matrix for XGBoost model")
+
+
+# Final ROC curve for XGBoost model
+last_fit_xgb %>% 
+  collect_predictions() %>% 
+  roc_curve(is_fraud, .pred_1) %>% 
+  autoplot() +
+  labs(title="ROC curve for XGBoost model")
+
+```
+
+An excellent confusion matrix and a near perfect ROC curve. This is a very good model!
+
+## Calculating the cost of fraud to the company
+
+-   How much money (in US\$ terms) are fraudulent transactions costing the company? Generate a table that summarizes the total amount of legitimate and fraudulent transactions per year and calculate the % of fraudulent transactions, in US\$ terms.
+
+```{r savings-for-cc-company}
+
+# use xgb workflow to get predictions
+xgb_preds <- 
+  xgb_wflow %>% 
+  fit(data = card_fraud_train) %>%  
+  
+# Use `augment()` to get predictions for entire data set
+  augment(new_data = card_fraud)
+
+# confusion matrix
+xgb_preds %>% 
+  conf_mat(truth = is_fraud, estimate = .pred_class)
+
+# select only transaction amount and fraud predictions 
+cost <- xgb_preds %>%
+  select(is_fraud,year, amt, pred = .pred_class) 
+
+cost <- cost %>%
+  
+  # naive false-- we think every single transaction is ok and not fraud
+  mutate(false_naive = ifelse(is_fraud == 1, amt, 0)) %>% 
+
+  # false negatives-- we thought they were not fraud, but they were
+  mutate(false_negatives = ifelse(pred == 0 & is_fraud == 1, amt, 0)) %>% 
+
+  # false positives-- we thought they were fraud, but they were not
+  mutate(false_positives = ifelse(pred == 1 & is_fraud == 0, amt, 0)) %>% 
+
+  # true positives-- we thought they were fraud, and they were 
+  mutate(true_positives = ifelse(pred == 1 & is_fraud == 1, amt, 0)) %>% 
+
+  # true negatives-- we thought they were ok, and they were 
+  mutate(true_negatives = ifelse(pred == 0 & is_fraud == 0, amt, 0))
+
+  
+# Summarising
+
+cost_summary <- cost %>% 
+  summarise(across(starts_with(c("false","true")), 
+            ~ sum(.x, na.rm = TRUE)))
+
+cost_summary
+
+
+# how much money are fraudulent transactions costing the company?
+# group transactions by year and fraud status
+cost %>% 
+  group_by(year, is_fraud) %>%
+  
+# calculate total dollar amount for each fraud group and year 
+  summarize(total_amount_dollars = sum(amt)) %>% 
+  
+# calculate percentage of total amount for each fraud group 
+  mutate(percentage_dollars = 
+           total_amount_dollars/sum(total_amount_dollars)*100)  
+
+```
+
+-   Compare your model vs the naive classification that we do not have any fraudulent transactions. The \$ improvement of our model over the naive policy equals `cost_summary$false_naive - cost_summary$false_negatives - cost_summary$false_positives * 0.02)`
+
+    |             |
+    |------------:|
+    | = \$1670262 |
+
+```{r improvement-of-model}
+
+cost_summary %>% 
+  summarise(improvment_dollars = false_naive - false_negatives - 0.02*false_positives)
+```
