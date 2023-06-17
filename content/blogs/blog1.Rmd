@@ -1,15 +1,14 @@
-
 ---
-title: "Final Group Project"
-description: "Final Group Project."
-slug: "groupproject"
+categories:
+- ""
+- ""
+date: "2021-09-30T22:26:09-05:00"
+description: Final Group Project
+draft: false
 image: lbs.jpg
 keywords: ""
-categories: 
-    - ""
-    - ""
-date: 2021-09-30T22:26:09-05:00
-draft: false
+slug: groupproject
+title: Final Group Project
 ---
 
 ```{r load-libraries, echo=FALSE, message=FALSE, warning=FALSE}
