@@ -80,11 +80,11 @@ params:
   tiles:
     enable: yes
     showcase:
-      - image: picture1.jpg
+      - image: picture14.jpg
         subtitle: Final Submission
         title: Group Project 
         url: blogs/groupproject
-      - image: picture6.jpg
+      - image: picture13.jpg
         subtitle: of DJIA Stocks 
         title: Risk-Return
         url: blogs/riskreturn
@@ -92,7 +92,7 @@ params:
         subtitle: I've done a few things.
         title: Working
         url: blogs/working
-      - image: picture1.jpg
+      - image: picture3.jpg
         subtitle: I've studied a bit. 
         title: Learning
         url: blogs/learning
