@@ -7,7 +7,7 @@ description: Risk-Return of DJIA stocks
 draft: false
 image: spices.jpg
 keywords: ""
-slug: riskreturn
+slug: "riskreturn"
 title: Risk-Return of DJIA stocks
 ---
 

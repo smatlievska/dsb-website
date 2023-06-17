@@ -7,7 +7,7 @@ description: Final Group Project
 draft: false
 image: lbs.jpg
 keywords: ""
-slug: groupproject
+slug: "groupproject"
 title: Final Group Project
 ---
 
