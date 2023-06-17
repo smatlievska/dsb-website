@@ -83,7 +83,7 @@ params:
       - image: picture1.jpg
         subtitle: Final Submission
         title: Group Project 
-        url: blogs/living
+        url: blogs/groupproject
       - image: picture6.jpg
         subtitle: of DJIA Stocks 
         title: Risk-Return
