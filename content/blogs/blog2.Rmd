@@ -4,9 +4,9 @@ categories:
 - ""
 - ""
 date: "2021-09-30"
-description: Risk-Return of DJIA stocks
+description: Showcasing an example from class, that calculates the risk-return of DJIA stocks.
 draft: false
-image: spices.jpg
+image: picture16.jpg
 keywords: ""
 slug: riskreturn
 title: Risk-Return of DJIA stocks

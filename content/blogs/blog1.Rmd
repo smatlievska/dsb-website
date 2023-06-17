@@ -1,11 +1,12 @@
+
 ---
 categories:
 - ""
 - ""
 date: "2021-09-30T22:26:09-05:00"
-description: Final Group Project
+description: Our finalized group project that predicts credit card fraud.
 draft: false
-image: lbs.jpg
+image: picture17.jpg
 keywords: ""
 slug: groupproject
 title: Final Group Project
